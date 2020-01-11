@@ -18,8 +18,12 @@ int main()
     int lengthValue = 0;
     std::string path = "fastq";
   
-    readFile(&path, false, &lengthValue);
+    std::string gene1 = "AGGGCT";
+    std::string gene2 = "AGGCAT";
+    findMinimumDistance(gene1, gene2, 6);
 
+    readFile(&path, false, &lengthValue);
+    
     //std::cout << allLengthsVector.size() << std::endl;
 
     lengthValue = findMostCommonLength(&allLengthsVector);
