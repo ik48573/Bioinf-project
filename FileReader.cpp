@@ -8,7 +8,7 @@ namespace fs = std::filesystem;
 int readFile(std::string* path, bool read_collect, int *lengthValue); //if false then just read, else collect valid chains
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 void collectChains(std::string* path, int* length);
-void findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
+int findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
 
 std::vector<unsigned int> allLengthsVector;
 std::vector<std::string> validChains;
@@ -109,8 +109,7 @@ void collectChains(std::string* path, int* length) {
 
 }
 
-
-void findMinimumDistance(std::string chain1, std::string chain2, int chainLength) {
+int findMinimumDistance(std::string chain1, std::string chain2, int chainLength) {
     int misMatchPenalty = 3;
     int gapPenalty = 2;
 
@@ -232,12 +231,14 @@ void findMinimumDistance(std::string chain1, std::string chain2, int chainLength
         std::cout << (char)yans[i];
     }
 
+    int rezultat = dp[chainLength][chainLength];
+
     for (int i = 0; i < 2 * chainLength; ++i)
         delete[] dp[i];
     delete[] dp;
     delete[] xans;
     delete[] yans;
-    return;
+    return rezultat;
 }
 
 #include <algorithm>
