@@ -2,16 +2,17 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <vector>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
-int readFile(std::string* path, bool read_collect, int *lengthValue); //if false then just read, else collect valid chains
+int readFileNames(std::string* path); //if false then just read, else collect valid chains
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
-void collectChains(std::string* path, int* length);
+std::vector<std::string> collectChains(std::string path, std::string fileName);
 int findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
 
-std::vector<unsigned int> allLengthsVector;
-std::vector<std::string> validChains;
+std::vector<std::string> fileNames;
 
 int main()
 {
@@ -20,59 +21,31 @@ int main()
   
     std::string gene1 = "AGGGCT";
     std::string gene2 = "AGGCAT";
-    findMinimumDistance(gene1, gene2, 6);
+    int dist = findMinimumDistance(gene1, gene2, 6);
 
-    readFile(&path, false, &lengthValue);
+    readFileNames(&path);
     
-    //std::cout << allLengthsVector.size() << std::endl;
+    //lengthValue = findMostCommonLength(&allLengthsVector);
+    //readFile(&path, true, &lengthValue);
 
-    lengthValue = findMostCommonLength(&allLengthsVector);
-    readFile(&path, true, &lengthValue);
-
-    std::cout << "Validnih lanaca ima " << validChains.size() <<std::endl;
+    for (int i = 0; i < fileNames.size(); i++) {
+        //std::cout << fileNames.at(i) << std::endl;
+        std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
+        //std::cout << "Ovaj file ima " << chainsFromFile.size() << " validnih lanaca." << std::endl;
+    }
      
     return 0;
 }
 
-int readFile(std::string *path, bool read_collect, int* lengthValue) {
+int readFileNames(std::string *path) {
     //std::string path = "fastq";
     for (const auto& entry : fs::directory_iterator(*path)) {
         std::string fileName = fs::path(entry.path()).filename().string();
         if (fileName.rfind("J", 0) == 0) {
-            std::ifstream fileOpen(entry.path().string());
-            if (!fileOpen.is_open()) {
-                std::perror("File opening failed");
-                return EXIT_FAILURE;
+            if (std::find(fileNames.begin(), fileNames.end(), fileName) != fileNames.end()) {}
+            else {
+                fileNames.push_back(fileName);
             }
-            else
-            {
-                std::cout << "Reading: " << fileName<<"\n";
-                std::string line;
-                bool flag = false;
-                while (fileOpen.good())
-                {
-                    getline(fileOpen, line);
-                    if (flag == true) {
-                        unsigned int lineLength = line.length();
-           
-                        if (read_collect && lineLength == *lengthValue) {
-                            validChains.push_back(line);
-                        }
-                        else {
-                            allLengthsVector.push_back(line.length());
-                        }
-                        flag = false;
-                    }
-                    if (line.rfind("@16WBS", 0) == 0) {
-                        flag = true;        //sljedeća linija je lanac
-                    }
-                }
-                fileOpen.close();
-                if (!read_collect) {
-                    std::cout << allLengthsVector.size() << std::endl;
-                }
-            }
-
         }
     }
     return 0;
@@ -105,12 +78,71 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
             lengthValue = lengthVector.at(i);
         }
     }
-    std::cout << "\nNajveci broj pojavljivanja je za: " << lengthValue << std::endl;
+    std::cout << "Najveci broj pojavljivanja je za: " << lengthValue << std::endl;
     return lengthValue;
 }
 
-void collectChains(std::string* path, int* length) {
+std::vector<std::string> collectChains(std::string path, std::string fileName) {
 
+    std::string fullPath = path + "/" + fileName;
+    std::vector<unsigned int> allLengthsVector;
+    std::vector<std::string> validChains;
+
+    std::ifstream fileOpen(fullPath);
+    if (!fileOpen.is_open()) {
+        std::perror("File opening failed");
+    }
+    else
+    {
+        std::cout << "Reading: " << fullPath << std::endl;
+        std::string line;
+        bool flag = false;
+        while (fileOpen.good())
+        {
+            getline(fileOpen, line);
+            if (flag == true) {
+                unsigned int lineLength = line.length();
+                allLengthsVector.push_back(line.length());
+                flag = false;
+            }
+            if (line.rfind("@16WBS", 0) == 0) {
+                flag = true;        //sljedeća linija je lanac
+            }
+        }
+        fileOpen.close();
+        std::cout << allLengthsVector.size() << std::endl;
+    }
+
+    int lengthValue = findMostCommonLength(&allLengthsVector);
+    std::cout << "Duljina je: " << lengthValue << std::endl;
+
+    std::ifstream fileOpen2(fullPath);
+    if (!fileOpen2.is_open()) {
+        std::perror("File opening failed");
+    }
+    else
+    {
+        std::cout << "Reading: " << fullPath << std::endl;
+        std::string line;
+        bool flag = false;
+        while (fileOpen2.good())
+        {
+            getline(fileOpen2, line);
+            if (flag == true) {
+                unsigned int lineLength = line.length();
+                //allLengthsVector.push_back(line.length());
+                if (line.length() == lengthValue) {
+                    validChains.push_back(line);
+                }
+                flag = false;
+            }
+            if (line.rfind("@16WBS", 0) == 0) {
+                flag = true;        //sljedeća linija je lanac
+            }
+        }
+        fileOpen2.close();
+    }
+    return validChains;
 }
 
 int findMinimumDistance(std::string chain1, std::string chain2, int chainLength) {
@@ -259,12 +291,12 @@ double square(double value) {
     return value * value;
 }
 
-double distance(string first, string second) {
+/*double distance(string first, string second) {
     //return square(first.x - second.x) + square(first.y - second.y);
     //GLOBAL SEQUENCE ALLIGNMENT
-}
+}*/
 
-DataFrame k_means(const DataFrame& data,
+/*DataFrame k_means(const DataFrame& data,
     size_t k,
     size_t number_of_iterations) {
     static std::random_device seed;
@@ -305,6 +337,6 @@ DataFrame k_means(const DataFrame& data,
     }
 
     return means;
-}
+}*/
 
 
