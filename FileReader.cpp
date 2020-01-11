@@ -8,6 +8,7 @@ namespace fs = std::filesystem;
 int readFile(std::string* path, bool read_collect, int *lengthValue); //if false then just read, else collect valid chains
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 void collectChains(std::string* path, int* length);
+void findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
 
 std::vector<unsigned int> allLengthsVector;
 std::vector<std::string> validChains;
@@ -106,6 +107,137 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
 
 void collectChains(std::string* path, int* length) {
 
+}
+
+
+void findMinimumDistance(std::string chain1, std::string chain2, int chainLength) {
+    int misMatchPenalty = 3;
+    int gapPenalty = 2;
+
+    int i, j; // intialising variables  
+
+    // table for storing optimal substructure answers 
+    int** dp = new int* [2 * chainLength + 1];
+    for (int i = 0; i < 2 * chainLength + 1; ++i)
+        dp[i] = new int[2 * chainLength + 1];
+
+    for (int i = 0; i < 2 * chainLength + 1; i++) {
+        for (int j = 0; j < 2 * chainLength + 1; j++) {
+            dp[i][j] = 0;
+        }
+    }
+    //std::cout << "kraj";
+    // intialising the table 
+    for (i = 0; i <= (chainLength + chainLength); i++)
+    {
+        dp[i][0] = i * gapPenalty;
+        dp[0][i] = i * gapPenalty;
+    }
+
+    // calcuting the minimum penalty 
+    for (i = 1; i <= chainLength; i++)
+    {
+        for (j = 1; j <= chainLength; j++)
+        {
+            if (chain1[i - 1] == chain2[j - 1])
+            {
+                dp[i][j] = dp[i - 1][j - 1];
+            }
+            else
+            {
+                dp[i][j] = std::min({ dp[i - 1][j - 1] + misMatchPenalty ,
+                                dp[i - 1][j] + gapPenalty ,
+                                dp[i][j - 1] + gapPenalty });
+            }
+        }
+    }
+
+    // Reconstructing the solution 
+    int l = 2 * chainLength; // maximum possible length 
+
+    i = chainLength; j = chainLength;
+
+    int xpos = l;
+    int ypos = l;
+
+    //const int dulj = 11; //6+5
+
+    // Final answers for the respective strings 
+    int* yans = new int[l + 1];
+    int* xans = new int[l + 1];
+
+    while (!(i == 0 || j == 0))
+    {
+        if (chain1[i - 1] == chain2[j - 1])
+        {
+            xans[xpos--] = (int)chain1[i - 1];
+            yans[ypos--] = (int)chain2[j - 1];
+            i--; j--;
+        }
+        else if (dp[i - 1][j - 1] + misMatchPenalty == dp[i][j])
+        {
+            xans[xpos--] = (int)chain1[i - 1];
+            yans[ypos--] = (int)chain2[j - 1];
+            i--; j--;
+        }
+        else if (dp[i - 1][j] + gapPenalty == dp[i][j])
+        {
+            xans[xpos--] = (int)chain1[i - 1];
+            yans[ypos--] = (int)'_';
+            i--;
+        }
+        else if (dp[i][j - 1] + gapPenalty == dp[i][j])
+        {
+            xans[xpos--] = (int)'_';
+            yans[ypos--] = (int)chain2[j - 1];
+            j--;
+        }
+    }
+    while (xpos > 0)
+    {
+        if (i > 0) xans[xpos--] = (int)chain1[--i];
+        else xans[xpos--] = (int)'_';
+    }
+    while (ypos > 0)
+    {
+        if (j > 0) yans[ypos--] = (int)chain2[--j];
+        else yans[ypos--] = (int)'_';
+    }
+
+    // Since we have assumed the answer to be n+m long, 
+    // we need to remove the extra gaps in the starting 
+    // id represents the index from which the arrays 
+    // xans, yans are useful 
+    int id = 1;
+    for (i = l; i >= 1; i--)
+    {
+        if ((char)yans[i] == '_' && (char)xans[i] == '_')
+        {
+            id = i + 1;
+            break;
+        }
+    }
+
+    // Printing the final answer 
+    std::cout << "Minimum Penalty in aligning the genes = ";
+    std::cout << dp[chainLength][chainLength] << "\n";
+    std::cout << "The aligned genes are :\n";
+    for (i = id; i <= l; i++)
+    {
+        std::cout << (char)xans[i];
+    }
+    std::cout << "\n";
+    for (i = id; i <= l; i++)
+    {
+        std::cout << (char)yans[i];
+    }
+
+    for (int i = 0; i < 2 * chainLength; ++i)
+        delete[] dp[i];
+    delete[] dp;
+    delete[] xans;
+    delete[] yans;
+    return;
 }
 
 #include <algorithm>
