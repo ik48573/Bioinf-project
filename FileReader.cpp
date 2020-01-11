@@ -2,9 +2,13 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
-#include <vector>
 #include <algorithm>
+#include <cstdlib>
+#include <limits>
+#include <random>
+#include <vector>
 
+using namespace std;
 namespace fs = std::filesystem;
 
 int readFileNames(std::string* path); //if false then just read, else collect valid chains
@@ -277,26 +281,21 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chainLength)
     return rezultat;
 }
 
-#include <algorithm>
-#include <cstdlib>
-#include <limits>
-#include <random>
-#include <vector>
-#include <string>
-
-using namespace std;
 using DataFrame = vector<string>;
 
 double square(double value) {
     return value * value;
 }
 
-/*double distance(string first, string second) {
+int distanceBetweenTwoSequences(string first, string second) {
     //return square(first.x - second.x) + square(first.y - second.y);
     //GLOBAL SEQUENCE ALLIGNMENT
-}*/
+    int chainlength = first.length;
+    return findMinimumDistance(first, second, chainlength);
 
-/*DataFrame k_means(const DataFrame& data,
+}
+
+DataFrame k_means(const DataFrame& data,
     size_t k,
     size_t number_of_iterations) {
     static std::random_device seed;
@@ -313,11 +312,11 @@ double square(double value) {
     for (size_t iteration = 0; iteration < number_of_iterations; ++iteration) {
         // Find assignments.
         for (size_t chain = 0; chain < data.size(); ++chain) {
-            double best_distance = std::numeric_limits<double>::max();
+            int best_distance = std::numeric_limits<int>::max();
             size_t best_cluster = 0;
             for (size_t cluster = 0; cluster < k; ++cluster) {
-                const double distance =
-                    squared_l2_distance(data[chain], means[cluster]);
+                const int distance =
+                    distanceBetweenTwoSequences(data[chain], means[cluster]);
                 if (distance < best_distance) {
                     best_distance = distance;
                     best_cluster = cluster;
@@ -337,6 +336,6 @@ double square(double value) {
     }
 
     return means;
-}*/
+}
 
 
