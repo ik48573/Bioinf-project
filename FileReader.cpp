@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-int readFile(std::string* path, bool read_collect, int* lengthValue); //if false then just read, else collect valid chains
+int readFile(std::string* path, bool read_collect, int *lengthValue); //if false then just read, else collect valid chains
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 void collectChains(std::string* path, int* length);
 
@@ -16,7 +16,7 @@ int main()
 {
     int lengthValue = 0;
     std::string path = "fastq";
-
+  
     readFile(&path, false, &lengthValue);
 
     //std::cout << allLengthsVector.size() << std::endl;
@@ -24,12 +24,12 @@ int main()
     lengthValue = findMostCommonLength(&allLengthsVector);
     readFile(&path, true, &lengthValue);
 
-    std::cout << "Validnih lanaca ima " << validChains.size() << std::endl;
-
+    std::cout << "Validnih lanaca ima " << validChains.size() <<std::endl;
+     
     return 0;
 }
 
-int readFile(std::string* path, bool read_collect, int* lengthValue) {
+int readFile(std::string *path, bool read_collect, int* lengthValue) {
     //std::string path = "fastq";
     for (const auto& entry : fs::directory_iterator(*path)) {
         std::string fileName = fs::path(entry.path()).filename().string();
@@ -41,7 +41,7 @@ int readFile(std::string* path, bool read_collect, int* lengthValue) {
             }
             else
             {
-                std::cout << "Reading: " << fileName << "\n";
+                std::cout << "Reading: " << fileName<<"\n";
                 std::string line;
                 bool flag = false;
                 while (fileOpen.good())
@@ -49,7 +49,7 @@ int readFile(std::string* path, bool read_collect, int* lengthValue) {
                     getline(fileOpen, line);
                     if (flag == true) {
                         unsigned int lineLength = line.length();
-
+           
                         if (read_collect && lineLength == *lengthValue) {
                             validChains.push_back(line);
                         }
@@ -73,7 +73,7 @@ int readFile(std::string* path, bool read_collect, int* lengthValue) {
     return 0;
 }
 
-int findMostCommonLength(std::vector<unsigned int>* allLengthsVector) {
+int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
     std::vector <unsigned int> lengthVector; //izvojene duljine lanaca 
 
     int maxRepetition = 0;
@@ -90,10 +90,10 @@ int findMostCommonLength(std::vector<unsigned int>* allLengthsVector) {
             lengthVector.push_back((*allLengthsVector).at(i));
         }
     }
-    std::cout << "Ukupno ima: " << lengthVector.size() << " razlicitih duljina lanaca" << std::endl;
+    std::cout << "Ukupno ima: " <<lengthVector.size() <<" razlicitih duljina lanaca"<< std::endl;
 
     //prebroji koliko ponavljanja ima za svaku duljinu
-    for (int i = 0; i < lengthVector.size();i++) {
+    for (int i = 0; i < lengthVector.size();i++) {      
         int mycount = std::count((*allLengthsVector).begin(), (*allLengthsVector).end(), lengthVector.at(i));
         if (mycount > maxRepetition) {     //odredi maksimum
             maxRepetition = mycount;
@@ -169,3 +169,5 @@ DataFrame k_means(const DataFrame& data,
 
     return means;
 }
+
+
