@@ -17,7 +17,7 @@ using DataFrame = vector<string>;
 int readFileNames(std::string* path);
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 std::vector<std::string> collectChains(std::string path, std::string fileName);
-int findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
+int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length, int chain2Length);
 DataFrame k_means(const DataFrame& data, size_t k, size_t number_of_iterations);
 
 std::vector<std::string> fileNames;
@@ -27,9 +27,10 @@ int main(int argc, char *argv[])
     int lengthValue = 0;
     std::string path = "fastq";
   
-    /*std::string gene1 = "AGGGCT";
-    std::string gene2 = "AGGCAT";
-    //int dist = findMinimumDistance(gene1, gene2, 6);*/
+    std::string gene1 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCTGGCGAGGTGACGCGAA";
+    std::string gene2 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCGGCGAGGTGACGCGAA";
+    int dist = findMinimumDistance(gene1, gene2, gene1.length(), gene2.length());
+    cout << "udaljenost: " <<dist << endl;
     cout << argc << endl;
 
     if (argc == 1) {
@@ -49,7 +50,11 @@ int main(int argc, char *argv[])
         string fileName = argv[1];
         vector<string> chainsFromFile = collectChains(path, fileName);
         cout << "Dohvaćeni lanci" << endl;
-        vector<string> consensus = k_means(chainsFromFile, 4, 5);
+
+        for (int i = 0; i < chainsFromFile.size(); i++) {
+            //cout << chainsFromFile.at(i) << endl;
+        }
+        vector<string> consensus = k_means(chainsFromFile, 4, 1);
         for (int i = 0; i < consensus.size(); i++) {
             cout << i << " klaster: " << consensus.at(i) << endl;
         }
@@ -154,6 +159,7 @@ std::vector<std::string> collectChains(std::string path, std::string fileName) {
                 unsigned int lineLength = line.length();
                 //allLengthsVector.push_back(line.length());
                 if (line.length() == lengthValue) {
+                    //cout << line << endl;
                     validChains.push_back(line);
                 }
                 flag = false;
@@ -167,34 +173,37 @@ std::vector<std::string> collectChains(std::string path, std::string fileName) {
     return validChains;
 }
 
-int findMinimumDistance(std::string chain1, std::string chain2, int chainLength) {
-    int misMatchPenalty = 3;
-    int gapPenalty = 2;
+int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length, int chain2Length) {
+    int misMatchPenalty = 7;
+    int gapPenalty = 8;
 
     int i, j; // intialising variables  
 
-    // table for storing optimal substructure answers 
-    int** dp = new int* [2 * chainLength + 1];
-    for (int i = 0; i < 2 * chainLength + 1; ++i)
-        dp[i] = new int[2 * chainLength + 1];
+    const int n = chain1Length;
+    const int m = chain2Length;
 
-    for (int i = 0; i < 2 * chainLength + 1; i++) {
-        for (int j = 0; j < 2 * chainLength + 1; j++) {
+    // table for storing optimal substructure answers 
+    int** dp = new int* [n+m+1];
+    for (int i = 0; i < (n+m+1); ++i)
+        dp[i] = new int[n+m+1];
+
+    for (int i = 0; i < (n + m + 1); i++) {
+        for (int j = 0; j < (n + m + 1); j++) {
             dp[i][j] = 0;
         }
     }
     //std::cout << "kraj";
     // intialising the table 
-    for (i = 0; i <= (chainLength + chainLength); i++)
+    for (i = 0; i <= (n + m); i++)
     {
         dp[i][0] = i * gapPenalty;
         dp[0][i] = i * gapPenalty;
     }
 
     // calcuting the minimum penalty 
-    for (i = 1; i <= chainLength; i++)
+    for (i = 1; i <= n; i++)
     {
-        for (j = 1; j <= chainLength; j++)
+        for (j = 1; j <= m; j++)
         {
             if (chain1[i - 1] == chain2[j - 1])
             {
@@ -210,14 +219,12 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chainLength)
     }
 
     // Reconstructing the solution 
-    int l = 2 * chainLength; // maximum possible length 
+    int l = n+m; // maximum possible length 
 
-    i = chainLength; j = chainLength;
+    i = n; j = m;
 
     int xpos = l;
     int ypos = l;
-
-    //const int dulj = 11; //6+5
 
     // Final answers for the respective strings 
     int* yans = new int[l + 1];
@@ -289,9 +296,9 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chainLength)
         std::cout << (char)yans[i];
     }*/
 
-    int rezultat = dp[chainLength][chainLength];
+    int rezultat = dp[m][n];
 
-    for (int i = 0; i < 2 * chainLength; ++i)
+    for (int i = 0; i < (n+m+1); ++i)
         delete[] dp[i];
     delete[] dp;
     delete[] xans;
@@ -304,13 +311,6 @@ double square(double value) {
     return value * value;
 }
 
-int distanceBetweenTwoSequences(string first, string second) {
-    //return square(first.x - second.x) + square(first.y - second.y);
-    //GLOBAL SEQUENCE ALLIGNMENT
-    int chainlength = first.length();
-   return findMinimumDistance(first, second, chainlength);
-
-}
 
 DataFrame k_means(const DataFrame& data,
     size_t k,
@@ -319,38 +319,61 @@ DataFrame k_means(const DataFrame& data,
     static std::mt19937 random_number_generator(seed());
     std::uniform_int_distribution<size_t> indices(0, data.size() - 1);
 
-    auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(0),
-        5, -4, -8, -6);
-
-    auto graph = spoa::createGraph();
-    map<int, vector<string> > clusterChainMap;
-    
-        // Pick centroids as random points from the dataset.
+    //map<int, vector<string> > clusterChainMap;
+    vector<vector<string>> clusterChainMap(k);
+    for (int i = 0; i < k; i++) {
+        clusterChainMap.at(i).push_back("");
+    }
+    cout << "odaberi random centroid" << endl;
+    // Pick centroids as random points from the dataset.
     DataFrame means(k);
     for (auto& cluster : means) {
         cluster = data[indices(random_number_generator)];
+        cout << cluster << endl;
     }
+    cout << "Odabran centroid\n";
 
     std::vector<size_t> assignments(data.size());
     for (size_t iteration = 0; iteration < number_of_iterations; ++iteration) {
         // Find assignments.
+        cout << "Pocetak iteracije " + (iteration+1)<< endl;
         for (size_t chain = 0; chain < data.size(); ++chain) {
             int best_distance = std::numeric_limits<int>::max();
-            size_t best_cluster = 0;
+            size_t best_cluster = 7;
             for (size_t cluster = 0; cluster < k; ++cluster) {
-                const int distance =
-                    distanceBetweenTwoSequences(data[chain], means[cluster]);
-                if (distance < best_distance) {
+                cout << "trazi klaster" << endl;
+                cout << "racunaj distance" << endl;
+                //const int distance =
+                    //distanceBetweenTwoSequences(data[chain], means[cluster]);
+                const int distance = findMinimumDistance(data[chain], means[cluster], data[chain].length(), means[cluster].length());
+                cout << data[chain]<< endl;
+                cout << means[cluster] << endl;
+                cout << "Izracunao distance" << endl;
+                cout << "Najbolja distanca: " << best_distance << " i distanca: " << distance<<endl;
+                cout << "Najbolji klaster: " << best_cluster << "i trenutni klaster: " << cluster<<endl;
+                if (distance <= best_distance) {
                     best_distance = distance;
                     best_cluster = cluster;
                 }
+                cout << "Nasao klaster" << endl;
             }
-            clusterChainMap[best_cluster].push_back(data[chain]);
+            //clusterChainMap[best_cluster].push_back(data[chain]);
+            cout << "Spremi lanac u klaster" << endl;
+            clusterChainMap.at(best_cluster).push_back(data[chain]);
+            cout << "Spremio lanac u klaster" << endl;
+            cout << "zavrsen lanac: " << chain<< "/" <<data.size()<< endl;
+
         }
 
 
         // Divide sums by counts to get new centroids.
         //TU SPOA
+
+
+        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1),
+            5, -4, -8, -6);
+
+        auto graph = spoa::createGraph();
         for (int i = 0; i < k; i++) {
             for (const auto& it : clusterChainMap[i]) {
                 auto alignment = alignment_engine->align(it, graph);
@@ -369,7 +392,7 @@ DataFrame k_means(const DataFrame& data,
             const auto count = std::max<size_t>(1, counts[cluster]);
             means[cluster] = consensus.c_str();
         }*/
-        
+        cout << "kraj iteracije" << endl;
     }
 
     return means;
