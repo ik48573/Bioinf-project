@@ -8,30 +8,26 @@
 #include <random>
 #include <vector>
 #include <map>
-#include "spoa/include/spoa/spoa.hpp"
-
+#include "include/spoa/spoa.hpp"
 using namespace std;
-namespace fs = std::filesystem;
-using DataFrame = vector<string>;
+namespace fs = filesystem;
 
-int readFileNames(std::string* path);
-int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
-std::vector<std::string> collectChains(std::string path, std::string fileName);
-int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length, int chain2Length);
-DataFrame k_means(const DataFrame& data, size_t k, size_t number_of_iterations);
+int readFileNames(string* path);
+int findMostCommonLength(vector<unsigned int>* allLengthsVector);
+vector<string> collectChains(string path, string fileName);
+int findMinimumDistance(string chain1, string chain2, int chain1Length, int chain2Length);
+vector<string> k_means(const vector<string>& data, int k, int number_of_iterations);
 
-std::vector<std::string> fileNames;
+vector<string> fileNames;
 
 int main(int argc, char *argv[])
 {
     int lengthValue = 0;
-    std::string path = "fastq";
+    string path = "fastq";
   
-    std::string gene1 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCTGGCGAGGTGACGCGAA";
-    std::string gene2 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCGGCGAGGTGACGCGAA";
+    string gene1 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCTGGCGAGGTGACGCGAA";
+    string gene2 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCGGCGAGGTGACGCGAA";
     int dist = findMinimumDistance(gene1, gene2, gene1.length(), gene2.length());
-    cout << "udaljenost: " <<dist << endl;
-    cout << argc << endl;
 
     if (argc == 1) {
         readFileNames(&path);
@@ -39,24 +35,22 @@ int main(int argc, char *argv[])
     //readFile(&path, true, &lengthValue);
 
         for (int i = 0; i < fileNames.size(); i++) {
-            //std::cout << fileNames.at(i) << std::endl;
-            std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
-            std::cout << "Dohvaćeni lanci" << std::endl;
+            //cout << fileNames.at(i) << endl;
+            vector<string> chainsFromFile = collectChains(path, fileNames.at(i));
+            cout << "Dohvaćeni lanci" << endl;
             vector<string> consensus = k_means(chainsFromFile, 4, 1);
-            cout << consensus.at(0);
         }
     }
     else if (argc == 2) {
         string fileName = argv[1];
         vector<string> chainsFromFile = collectChains(path, fileName);
-        cout << "Dohvaćeni lanci" << endl;
 
         for (int i = 0; i < chainsFromFile.size(); i++) {
             //cout << chainsFromFile.at(i) << endl;
         }
         vector<string> consensus = k_means(chainsFromFile, 4, 1);
         for (int i = 0; i < consensus.size(); i++) {
-            cout << i << " klaster: " << consensus.at(i) << endl;
+            cout << consensus.at(i) << endl;
         }
     }
 
@@ -65,11 +59,11 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int readFileNames(std::string *path) {
+int readFileNames(string *path) {
     for (const auto& entry : fs::directory_iterator(*path)) {
-        std::string fileName = fs::path(entry.path()).filename().string();
+        string fileName = fs::path(entry.path()).filename().string();
         if (fileName.rfind("J", 0) == 0) {
-            if (std::find(fileNames.begin(), fileNames.end(), fileName) != fileNames.end()) {}
+            if (find(fileNames.begin(), fileNames.end(), fileName) != fileNames.end()) {}
             else {
                 fileNames.push_back(fileName);
             }
@@ -78,8 +72,8 @@ int readFileNames(std::string *path) {
     return 0;
 }
 
-int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
-    std::vector <unsigned int> lengthVector; //izvojene duljine lanaca 
+int findMostCommonLength(vector<unsigned int> *allLengthsVector) {
+    vector <unsigned int> lengthVector; //izvojene duljine lanaca 
 
     int maxRepetition = 0;
     int lengthValueIndex;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
@@ -95,34 +89,34 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
             lengthVector.push_back((*allLengthsVector).at(i));
         }
     }
-    std::cout << "Ukupno ima: " <<lengthVector.size() <<" razlicitih duljina lanaca"<< std::endl;
+    cout << "Ukupno ima: " <<lengthVector.size() <<" razlicitih duljina lanaca"<< endl;
 
     //prebroji koliko ponavljanja ima za svaku duljinu
     for (int i = 0; i < lengthVector.size();i++) {      
-        int mycount = std::count((*allLengthsVector).begin(), (*allLengthsVector).end(), lengthVector.at(i));
+        int mycount = count((*allLengthsVector).begin(), (*allLengthsVector).end(), lengthVector.at(i));
         if (mycount > maxRepetition) {     //odredi maksimum
             maxRepetition = mycount;
             lengthValueIndex = lengthVector.at(i);
         }
     }
-    std::cout << "Najveci broj pojavljivanja je za: " << lengthValueIndex << std::endl;
+    cout << "Najveci broj pojavljivanja je za: " << lengthValueIndex << endl;
     return lengthValueIndex;
 }
 
-std::vector<std::string> collectChains(std::string path, std::string fileName) {
+vector<string> collectChains(string path, string fileName) {
 
-    std::string fullPath = path + "/" + fileName;
-    std::vector<unsigned int> allLengthsVector;
-    std::vector<std::string> validChains;
+    string fullPath = path + "/" + fileName;
+    vector<unsigned int> allLengthsVector;
+    vector<string> validChains;
 
-    std::ifstream fileOpen(fullPath);
+    ifstream fileOpen(fullPath);
     if (!fileOpen.is_open()) {
-        std::perror("File opening failed");
+        perror("File opening failed");
     }
     else
     {
-        std::cout << "Reading: " << fullPath << std::endl;
-        std::string line;
+        cout << "Reading: " << fullPath << endl;
+        string line;
         bool flag = false;
         while (fileOpen.good())
         {
@@ -137,20 +131,20 @@ std::vector<std::string> collectChains(std::string path, std::string fileName) {
             }
         }
         fileOpen.close();
-        std::cout << allLengthsVector.size() << std::endl;
+        cout << allLengthsVector.size() << endl;
     }
 
     int lengthValue = findMostCommonLength(&allLengthsVector);
-    std::cout << "Duljina je: " << lengthValue << std::endl;
+    cout << "Duljina je: " << lengthValue << endl;
 
-    std::ifstream fileOpen2(fullPath);
+    ifstream fileOpen2(fullPath);
     if (!fileOpen2.is_open()) {
-        std::perror("File opening failed");
+        perror("File opening failed");
     }
     else
     {
-        std::cout << "Reading: " << fullPath << std::endl;
-        std::string line;
+        cout << "Reading: " << fullPath << endl;
+        string line;
         bool flag = false;
         while (fileOpen2.good())
         {
@@ -173,7 +167,7 @@ std::vector<std::string> collectChains(std::string path, std::string fileName) {
     return validChains;
 }
 
-int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length, int chain2Length) {
+int findMinimumDistance(string chain1, string chain2, int chain1Length, int chain2Length) {
     int misMatchPenalty = 7;
     int gapPenalty = 8;
 
@@ -192,7 +186,7 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length
             dp[i][j] = 0;
         }
     }
-    //std::cout << "kraj";
+    //cout << "kraj";
     // intialising the table 
     for (i = 0; i <= (n + m); i++)
     {
@@ -211,7 +205,7 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length
             }
             else
             {
-                dp[i][j] = std::min({ dp[i - 1][j - 1] + misMatchPenalty ,
+                dp[i][j] = min({ dp[i - 1][j - 1] + misMatchPenalty ,
                                 dp[i - 1][j] + gapPenalty ,
                                 dp[i][j - 1] + gapPenalty });
             }
@@ -283,17 +277,17 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length
     }
 
     // Printing the final answer 
-    /*std::cout << "Minimum Penalty in aligning the genes = ";
-    std::cout << dp[chainLength][chainLength] << "\n";
-    std::cout << "The aligned genes are :\n";
+    /*cout << "Minimum Penalty in aligning the genes = ";
+    cout << dp[chainLength][chainLength] << "\n";
+    cout << "The aligned genes are :\n";
     for (i = id; i <= l; i++)
     {
-        std::cout << (char)xans[i];
+        cout << (char)xans[i];
     }
-    std::cout << "\n";
+    cout << "\n";
     for (i = id; i <= l; i++)
     {
-        std::cout << (char)yans[i];
+        cout << (char)yans[i];
     }*/
 
     int rezultat = dp[m][n];
@@ -306,96 +300,56 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chain1Length
     return rezultat;
 }
 
-
-double square(double value) {
-    return value * value;
-}
-
-
-DataFrame k_means(const DataFrame& data,
-    size_t k,
-    size_t number_of_iterations) {
-    static std::random_device seed;
-    static std::mt19937 random_number_generator(seed());
-    std::uniform_int_distribution<size_t> indices(0, data.size() - 1);
+vector<string> k_means(const vector<string>& data,
+    int k,
+    int number_of_iterations) {
 
     //map<int, vector<string> > clusterChainMap;
     vector<vector<string>> clusterChainMap(k);
-    for (int i = 0; i < k; i++) {
-        clusterChainMap.at(i).push_back("");
-    }
-    cout << "odaberi random centroid" << endl;
-    // Pick centroids as random points from the dataset.
-    DataFrame means(k);
-    for (auto& cluster : means) {
-        cluster = data[indices(random_number_generator)];
-        cout << cluster << endl;
-    }
-    cout << "Odabran centroid\n";
 
-    std::vector<size_t> assignments(data.size());
+
+    // Pick centroids as random points from the dataset.
+    vector<string> means;
+    for (int i = 0; i < k; ++i) {
+        clusterChainMap.at(i).push_back("");
+        means.push_back(data[rand() % data.size()]);
+    }
+
+    vector<size_t> assignments(data.size());
     for (size_t iteration = 0; iteration < number_of_iterations; ++iteration) {
         // Find assignments.
-        cout << "Pocetak iteracije " + (iteration+1)<< endl;
         for (size_t chain = 0; chain < data.size(); ++chain) {
-            int best_distance = std::numeric_limits<int>::max();
-            size_t best_cluster = 7;
+            int best_distance = numeric_limits<int>::max();
+            size_t best_cluster = 0;
             for (size_t cluster = 0; cluster < k; ++cluster) {
-                cout << "trazi klaster" << endl;
-                cout << "racunaj distance" << endl;
                 //const int distance =
                     //distanceBetweenTwoSequences(data[chain], means[cluster]);
                 const int distance = findMinimumDistance(data[chain], means[cluster], data[chain].length(), means[cluster].length());
-                cout << data[chain]<< endl;
-                cout << means[cluster] << endl;
-                cout << "Izracunao distance" << endl;
-                cout << "Najbolja distanca: " << best_distance << " i distanca: " << distance<<endl;
-                cout << "Najbolji klaster: " << best_cluster << "i trenutni klaster: " << cluster<<endl;
-                if (distance <= best_distance) {
+                if (distance < best_distance) {
                     best_distance = distance;
                     best_cluster = cluster;
                 }
-                cout << "Nasao klaster" << endl;
             }
             //clusterChainMap[best_cluster].push_back(data[chain]);
-            cout << "Spremi lanac u klaster" << endl;
             clusterChainMap.at(best_cluster).push_back(data[chain]);
-            cout << "Spremio lanac u klaster" << endl;
-            cout << "zavrsen lanac: " << chain<< "/" <<data.size()<< endl;
 
         }
-
-
-        // Divide sums by counts to get new centroids.
         //TU SPOA
-
-
-        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1),
-            5, -4, -8, -6);
-
-        auto graph = spoa::createGraph();
-        for (int i = 0; i < k; i++) {
+        for (int i = 0; i < k; ++i) {
+            auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1),
+                5, -4, -8, -6);
+            auto graph = spoa::createGraph();
             for (const auto& it : clusterChainMap[i]) {
                 auto alignment = alignment_engine->align(it, graph);
                 graph->add_alignment(alignment, it);
             }
-            std::string consensus = graph->generate_consensus();
-            means[i] = consensus.c_str();
+            string consensus = graph->generate_consensus();
+            means[i] = consensus;
         }
-
-       /* std::string consensus = graph->generate_consensus();
-
-        fprintf(stderr, "Consensus (%zu)\n", consensus.size());
-        fprintf(stderr, "%s\n", consensus.c_str());
-        for (size_t cluster = 0; cluster < k; ++cluster) {
-            // Turn 0/0 into 0/1 to avoid zero division.
-            const auto count = std::max<size_t>(1, counts[cluster]);
-            means[cluster] = consensus.c_str();
-        }*/
-        cout << "kraj iteracije" << endl;
+        for (int i = 0; i < k; ++i) {
+            cout << clusterChainMap.at(i).size() << endl;
+        }
     }
 
     return means;
 }
-
-
