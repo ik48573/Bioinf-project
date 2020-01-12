@@ -12,7 +12,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int readFileNames(std::string* path); //if false then just read, else collect valid chains
+int readFileNames(std::string* path);
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 std::vector<std::string> collectChains(std::string path, std::string fileName);
 int findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
@@ -29,8 +29,7 @@ int main()
     int dist = findMinimumDistance(gene1, gene2, 6);
 
     readFileNames(&path);
-    
-    //lengthValue = findMostCommonLength(&allLengthsVector);
+        //lengthValue = findMostCommonLength(&allLengthsVector);
     //readFile(&path, true, &lengthValue);
 
     for (int i = 0; i < fileNames.size(); i++) {
@@ -55,7 +54,6 @@ int main()
 }
 
 int readFileNames(std::string *path) {
-    //std::string path = "fastq";
     for (const auto& entry : fs::directory_iterator(*path)) {
         std::string fileName = fs::path(entry.path()).filename().string();
         if (fileName.rfind("J", 0) == 0) {
@@ -72,7 +70,7 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
     std::vector <unsigned int> lengthVector; //izvojene duljine lanaca 
 
     int maxRepetition = 0;
-    int lengthValue;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
+    int lengthValueIndex;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
     int flag = 1;
 
     for (int i = 0; i < (*allLengthsVector).size();i++) {   //izdvoji duljine lanaca bez ponavljanja
@@ -92,11 +90,11 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
         int mycount = std::count((*allLengthsVector).begin(), (*allLengthsVector).end(), lengthVector.at(i));
         if (mycount > maxRepetition) {     //odredi maksimum
             maxRepetition = mycount;
-            lengthValue = lengthVector.at(i);
+            lengthValueIndex = lengthVector.at(i);
         }
     }
-    std::cout << "Najveci broj pojavljivanja je za: " << lengthValue << std::endl;
-    return lengthValue;
+    std::cout << "Najveci broj pojavljivanja je za: " << lengthValueIndex << std::endl;
+    return lengthValueIndex;
 }
 
 std::vector<std::string> collectChains(std::string path, std::string fileName) {
