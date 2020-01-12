@@ -7,6 +7,7 @@
 #include <limits>
 #include <random>
 #include <vector>
+#include <map>
 #include "spoa/include/spoa/spoa.hpp"
 
 using namespace std;
@@ -298,15 +299,15 @@ double square(double value) {
     return value * value;
 }
 
-/*int distanceBetweenTwoSequences(string first, string second) {
+int distanceBetweenTwoSequences(string first, string second) {
     //return square(first.x - second.x) + square(first.y - second.y);
     //GLOBAL SEQUENCE ALLIGNMENT
-   // int chainlength = first.length;
-    //return findMinimumDistance(first, second, chainlength);
+    int chainlength = first.length;
+   return findMinimumDistance(first, second, chainlength);
 
-}*/
+}
 
-/*DataFrame k_means(const DataFrame& data,
+DataFrame k_means(const DataFrame& data,
     size_t k,
     size_t number_of_iterations) {
     static std::random_device seed;
@@ -317,9 +318,9 @@ double square(double value) {
         5, -4, -8, -6);
 
     auto graph = spoa::createGraph();
-
-
-    // Pick centroids as random points from the dataset.
+    map<int, vector<string> > clusterChainMap;
+    
+        // Pick centroids as random points from the dataset.
     DataFrame means(k);
     for (auto& cluster : means) {
         cluster = data[indices(random_number_generator)];
@@ -339,20 +340,22 @@ double square(double value) {
                     best_cluster = cluster;
                 }
             }
-            assignments[chain] = best_cluster;
+            clusterChainMap[best_cluster].push_back(data[chain]);
         }
 
-        
 
         // Divide sums by counts to get new centroids.
         //TU SPOA
-        
-        for (const auto& it : chainsFromFile) {
-            auto alignment = alignment_engine->align(it, graph);
-            graph->add_alignment(alignment, it);
+        for (int i = 0; i < k; i++) {
+            for (const auto& it : clusterChainMap[i]) {
+                auto alignment = alignment_engine->align(it, graph);
+                graph->add_alignment(alignment, it);
+            }
+            std::string consensus = graph->generate_consensus();
+            means[i] = consensus.c_str();
         }
 
-        std::string consensus = graph->generate_consensus();
+       /* std::string consensus = graph->generate_consensus();
 
         fprintf(stderr, "Consensus (%zu)\n", consensus.size());
         fprintf(stderr, "%s\n", consensus.c_str());
@@ -360,10 +363,11 @@ double square(double value) {
             // Turn 0/0 into 0/1 to avoid zero division.
             const auto count = std::max<size_t>(1, counts[cluster]);
             means[cluster] = consensus.c_str();
-        }
+        }*/
+        
     }
 
     return means;
-}*/
+}
 
 
