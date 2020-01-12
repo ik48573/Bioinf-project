@@ -10,7 +10,7 @@
 #include "spoa/spoa.hpp"
 
 using namespace std;
-//namespace fs = std::filesystem;
+namespace fs = std::filesystem;
 
 int readFileNames(std::string* path);
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
@@ -36,27 +36,13 @@ int main()
         //std::cout << fileNames.at(i) << std::endl;
         std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
         //std::cout << "Ovaj file ima " << chainsFromFile.size() << " validnih lanaca." << std::endl;
-        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(0), 5, -4, -8, -6);
-
-        auto graph = spoa::createGraph();
-
-        for (const auto& it : chainsFromFile) {
-            auto alignment = alignment_engine->align(it, graph);
-            graph->add_alignment(alignment, it);
-        }
-
-        std::string consensus = graph->generate_consensus();
-
-        fprintf(stderr, "Consensus (%zu)\n", consensus.size());
-        fprintf(stderr, "%s\n", consensus.c_str());
     }
      
     return 0;
 }
 
 int readFileNames(std::string *path) {
-    //std::string path = "fastq";
-    /*for (const auto& entry : fs::directory_iterator(*path)) {
+    for (const auto& entry : fs::directory_iterator(*path)) {
         std::string fileName = fs::path(entry.path()).filename().string();
         if (fileName.rfind("J", 0) == 0) {
             if (std::find(fileNames.begin(), fileNames.end(), fileName) != fileNames.end()) {}
@@ -64,52 +50,7 @@ int readFileNames(std::string *path) {
                 fileNames.push_back(fileName);
             }
         }
-    }*/
-
-    int n = 0;
-    DIR *pDIR;
-    struct dirent* entry;
-    const char* path = "C:/Users/acubelic/Downloads/Bioinformatika - jeleni/fastq";
-    string pathFile;
-    string line;
-    int k;
-
-    if ((pDIR = opendir(path)) != NULL) {
-        while (entry = readdir(pDIR)) {
-            pathFile.clear();
-            k = 0;
-            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && strncmp(entry->d_name, "J", 1) == 0) {
-                cout << "Otvaram: " << entry->d_name << "\n";
-                n++;
-
-                pathFile.append(path);
-                pathFile.append("/");
-                pathFile.append(entry->d_name);
-                cout << "Putanja: " << pathFile << "\n";
-
-                ifstream input(pathFile);
-                /*if(!input.is_open()){
-                    printf("Nisam otvorio file\n");
-                } else {
-                    printf("Otvorio sam file\n");
-                }*/
-                while (getline(input, line)) {
-                    //printf("Usao u petlju while\n");
-                    //cout << line;
-                    if (k == 0 && line.compare(0, 6, "@16WBS") == 0) {
-                        k = 1;
-                        //printf("Našao 16WBS\n");
-                    }
-                    else if (k == 1) {
-                        //printf("Čitam stvarni redak\n");
-                        //cout << line.length();
-                        duljine.push_back(line.length());
-                        k = 0;
-                    }
-                }
-            }
-        }
-        closedir(pDIR);
+    }
     return 0;
 }
 
