@@ -12,44 +12,50 @@
 
 using namespace std;
 namespace fs = std::filesystem;
+using DataFrame = vector<string>;
 
 int readFileNames(std::string* path);
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 std::vector<std::string> collectChains(std::string path, std::string fileName);
 int findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
+DataFrame k_means(const DataFrame& data, size_t k, size_t number_of_iterations);
 
 std::vector<std::string> fileNames;
 
-int main()
+int main(int argc, char *argv[])
 {
     int lengthValue = 0;
     std::string path = "fastq";
   
-    std::string gene1 = "AGGGCT";
+    /*std::string gene1 = "AGGGCT";
     std::string gene2 = "AGGCAT";
-    //int dist = findMinimumDistance(gene1, gene2, 6);
+    //int dist = findMinimumDistance(gene1, gene2, 6);*/
+    cout << argc << endl;
 
-    readFileNames(&path);
+    if (argc == 1) {
+        readFileNames(&path);
         //lengthValue = findMostCommonLength(&allLengthsVector);
     //readFile(&path, true, &lengthValue);
 
-    for (int i = 0; i < fileNames.size(); i++) {
-        //std::cout << fileNames.at(i) << std::endl;
-        std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
-        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(0),
-            5, -4, -8, -6);
-
-        auto graph = spoa::createGraph();
-
-        for (const auto& it : chainsFromFile) {
-            auto alignment = alignment_engine->align(it, graph);
-            graph->add_alignment(alignment, it);
+        for (int i = 0; i < fileNames.size(); i++) {
+            //std::cout << fileNames.at(i) << std::endl;
+            std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
+            std::cout << "Dohvaćeni lanci" << std::endl;
+            vector<string> consensus = k_means(chainsFromFile, 4, 1);
+            cout << consensus.at(0);
         }
-
-        std::string consensus = graph->generate_consensus();
-        cout << consensus.c_str()<<endl;
-        //std::cout << "Ovaj file ima " << chainsFromFile.size() << " validnih lanaca." << std::endl;
     }
+    else if (argc == 2) {
+        string fileName = argv[1];
+        vector<string> chainsFromFile = collectChains(path, fileName);
+        cout << "Dohvaćeni lanci" << endl;
+        vector<string> consensus = k_means(chainsFromFile, 4, 5);
+        for (int i = 0; i < consensus.size(); i++) {
+            cout << i << " klaster: " << consensus.at(i) << endl;
+        }
+    }
+
+    
      
     return 0;
 }
@@ -270,7 +276,7 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chainLength)
     }
 
     // Printing the final answer 
-    std::cout << "Minimum Penalty in aligning the genes = ";
+    /*std::cout << "Minimum Penalty in aligning the genes = ";
     std::cout << dp[chainLength][chainLength] << "\n";
     std::cout << "The aligned genes are :\n";
     for (i = id; i <= l; i++)
@@ -281,7 +287,7 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chainLength)
     for (i = id; i <= l; i++)
     {
         std::cout << (char)yans[i];
-    }
+    }*/
 
     int rezultat = dp[chainLength][chainLength];
 
@@ -293,7 +299,6 @@ int findMinimumDistance(std::string chain1, std::string chain2, int chainLength)
     return rezultat;
 }
 
-using DataFrame = vector<string>;
 
 double square(double value) {
     return value * value;
@@ -302,7 +307,7 @@ double square(double value) {
 int distanceBetweenTwoSequences(string first, string second) {
     //return square(first.x - second.x) + square(first.y - second.y);
     //GLOBAL SEQUENCE ALLIGNMENT
-    int chainlength = first.length;
+    int chainlength = first.length();
    return findMinimumDistance(first, second, chainlength);
 
 }
