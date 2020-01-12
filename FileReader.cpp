@@ -7,7 +7,7 @@
 #include <limits>
 #include <random>
 #include <vector>
-
+#include "spoa/include/spoa/spoa.hpp"
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -25,7 +25,7 @@ int main()
   
     std::string gene1 = "AGGGCT";
     std::string gene2 = "AGGCAT";
-    int dist = findMinimumDistance(gene1, gene2, 6);
+    //int dist = findMinimumDistance(gene1, gene2, 6);
 
     readFileNames(&path);
     
@@ -302,6 +302,12 @@ DataFrame k_means(const DataFrame& data,
     static std::mt19937 random_number_generator(seed());
     std::uniform_int_distribution<size_t> indices(0, data.size() - 1);
 
+    auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(0),
+        5, -4, -8, -6);
+
+    auto graph = spoa::createGraph();
+
+
     // Pick centroids as random points from the dataset.
     DataFrame means(k);
     for (auto& cluster : means) {
@@ -327,11 +333,20 @@ DataFrame k_means(const DataFrame& data,
 
         // Divide sums by counts to get new centroids.
         //TU SPOA
+        
+        for (const auto& it : chainsFromFile) {
+            auto alignment = alignment_engine->align(it, graph);
+            graph->add_alignment(alignment, it);
+        }
+
+        std::string consensus = graph->generate_consensus();
+
+        fprintf(stderr, "Consensus (%zu)\n", consensus.size());
+        fprintf(stderr, "%s\n", consensus.c_str());
         for (size_t cluster = 0; cluster < k; ++cluster) {
             // Turn 0/0 into 0/1 to avoid zero division.
             const auto count = std::max<size_t>(1, counts[cluster]);
-            means[cluster].x = new_means[cluster].x / count;
-            means[cluster].y = new_means[cluster].y / count;
+            means[cluster] = consensus.c_str();
         }
     }
 
