@@ -8,6 +8,7 @@
 #include <random>
 #include <vector>
 #include "spoa/include/spoa/spoa.hpp"
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -35,6 +36,18 @@ int main()
     for (int i = 0; i < fileNames.size(); i++) {
         //std::cout << fileNames.at(i) << std::endl;
         std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
+        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(0),
+            5, -4, -8, -6);
+
+        auto graph = spoa::createGraph();
+
+        for (const auto& it : chainsFromFile) {
+            auto alignment = alignment_engine->align(it, graph);
+            graph->add_alignment(alignment, it);
+        }
+
+        std::string consensus = graph->generate_consensus();
+        cout << consensus.c_str()<<endl;
         //std::cout << "Ovaj file ima " << chainsFromFile.size() << " validnih lanaca." << std::endl;
     }
      
@@ -287,15 +300,15 @@ double square(double value) {
     return value * value;
 }
 
-int distanceBetweenTwoSequences(string first, string second) {
+/*int distanceBetweenTwoSequences(string first, string second) {
     //return square(first.x - second.x) + square(first.y - second.y);
     //GLOBAL SEQUENCE ALLIGNMENT
-    int chainlength = first.length;
-    return findMinimumDistance(first, second, chainlength);
+   // int chainlength = first.length;
+    //return findMinimumDistance(first, second, chainlength);
 
-}
+}*/
 
-DataFrame k_means(const DataFrame& data,
+/*DataFrame k_means(const DataFrame& data,
     size_t k,
     size_t number_of_iterations) {
     static std::random_device seed;
@@ -331,6 +344,8 @@ DataFrame k_means(const DataFrame& data,
             assignments[chain] = best_cluster;
         }
 
+        
+
         // Divide sums by counts to get new centroids.
         //TU SPOA
         
@@ -351,6 +366,6 @@ DataFrame k_means(const DataFrame& data,
     }
 
     return means;
-}
+}*/
 
 
