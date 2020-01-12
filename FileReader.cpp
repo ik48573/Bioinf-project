@@ -7,11 +7,12 @@
 #include <limits>
 #include <random>
 #include <vector>
+#include "spoa/spoa.hpp"
 
 using namespace std;
-namespace fs = std::filesystem;
+//namespace fs = std::filesystem;
 
-int readFileNames(std::string* path); //if false then just read, else collect valid chains
+int readFileNames(std::string* path);
 int findMostCommonLength(std::vector<unsigned int>* allLengthsVector);
 std::vector<std::string> collectChains(std::string path, std::string fileName);
 int findMinimumDistance(std::string chain1, std::string chain2, int chainLength);
@@ -28,14 +29,26 @@ int main()
     int dist = findMinimumDistance(gene1, gene2, 6);
 
     readFileNames(&path);
-    
-    //lengthValue = findMostCommonLength(&allLengthsVector);
+        //lengthValue = findMostCommonLength(&allLengthsVector);
     //readFile(&path, true, &lengthValue);
 
     for (int i = 0; i < fileNames.size(); i++) {
         //std::cout << fileNames.at(i) << std::endl;
         std::vector<std::string> chainsFromFile = collectChains(path, fileNames.at(i));
         //std::cout << "Ovaj file ima " << chainsFromFile.size() << " validnih lanaca." << std::endl;
+        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(0), 5, -4, -8, -6);
+
+        auto graph = spoa::createGraph();
+
+        for (const auto& it : chainsFromFile) {
+            auto alignment = alignment_engine->align(it, graph);
+            graph->add_alignment(alignment, it);
+        }
+
+        std::string consensus = graph->generate_consensus();
+
+        fprintf(stderr, "Consensus (%zu)\n", consensus.size());
+        fprintf(stderr, "%s\n", consensus.c_str());
     }
      
     return 0;
@@ -43,7 +56,7 @@ int main()
 
 int readFileNames(std::string *path) {
     //std::string path = "fastq";
-    for (const auto& entry : fs::directory_iterator(*path)) {
+    /*for (const auto& entry : fs::directory_iterator(*path)) {
         std::string fileName = fs::path(entry.path()).filename().string();
         if (fileName.rfind("J", 0) == 0) {
             if (std::find(fileNames.begin(), fileNames.end(), fileName) != fileNames.end()) {}
@@ -51,7 +64,52 @@ int readFileNames(std::string *path) {
                 fileNames.push_back(fileName);
             }
         }
-    }
+    }*/
+
+    int n = 0;
+    DIR *pDIR;
+    struct dirent* entry;
+    const char* path = "C:/Users/acubelic/Downloads/Bioinformatika - jeleni/fastq";
+    string pathFile;
+    string line;
+    int k;
+
+    if ((pDIR = opendir(path)) != NULL) {
+        while (entry = readdir(pDIR)) {
+            pathFile.clear();
+            k = 0;
+            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && strncmp(entry->d_name, "J", 1) == 0) {
+                cout << "Otvaram: " << entry->d_name << "\n";
+                n++;
+
+                pathFile.append(path);
+                pathFile.append("/");
+                pathFile.append(entry->d_name);
+                cout << "Putanja: " << pathFile << "\n";
+
+                ifstream input(pathFile);
+                /*if(!input.is_open()){
+                    printf("Nisam otvorio file\n");
+                } else {
+                    printf("Otvorio sam file\n");
+                }*/
+                while (getline(input, line)) {
+                    //printf("Usao u petlju while\n");
+                    //cout << line;
+                    if (k == 0 && line.compare(0, 6, "@16WBS") == 0) {
+                        k = 1;
+                        //printf("Našao 16WBS\n");
+                    }
+                    else if (k == 1) {
+                        //printf("Čitam stvarni redak\n");
+                        //cout << line.length();
+                        duljine.push_back(line.length());
+                        k = 0;
+                    }
+                }
+            }
+        }
+        closedir(pDIR);
     return 0;
 }
 
@@ -59,7 +117,7 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
     std::vector <unsigned int> lengthVector; //izvojene duljine lanaca 
 
     int maxRepetition = 0;
-    int lengthValue;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
+    int lengthValueIndex;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
     int flag = 1;
 
     for (int i = 0; i < (*allLengthsVector).size();i++) {   //izdvoji duljine lanaca bez ponavljanja
@@ -79,11 +137,11 @@ int findMostCommonLength(std::vector<unsigned int> *allLengthsVector) {
         int mycount = std::count((*allLengthsVector).begin(), (*allLengthsVector).end(), lengthVector.at(i));
         if (mycount > maxRepetition) {     //odredi maksimum
             maxRepetition = mycount;
-            lengthValue = lengthVector.at(i);
+            lengthValueIndex = lengthVector.at(i);
         }
     }
-    std::cout << "Najveci broj pojavljivanja je za: " << lengthValue << std::endl;
-    return lengthValue;
+    std::cout << "Najveci broj pojavljivanja je za: " << lengthValueIndex << std::endl;
+    return lengthValueIndex;
 }
 
 std::vector<std::string> collectChains(std::string path, std::string fileName) {
@@ -287,15 +345,15 @@ double square(double value) {
     return value * value;
 }
 
-int distanceBetweenTwoSequences(string first, string second) {
+/*int distanceBetweenTwoSequences(string first, string second) {
     //return square(first.x - second.x) + square(first.y - second.y);
     //GLOBAL SEQUENCE ALLIGNMENT
     int chainlength = first.length;
     return findMinimumDistance(first, second, chainlength);
 
-}
+}*/
 
-DataFrame k_means(const DataFrame& data,
+/*DataFrame k_means(const DataFrame& data,
     size_t k,
     size_t number_of_iterations) {
     static std::random_device seed;
@@ -336,6 +394,6 @@ DataFrame k_means(const DataFrame& data,
     }
 
     return means;
-}
+}*/
 
 
