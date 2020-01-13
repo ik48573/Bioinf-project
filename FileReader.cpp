@@ -22,12 +22,12 @@ vector<string> fileNames;
 
 int main(int argc, char *argv[])
 {
-    int lengthValue = 0;
+    //int lengthValue = 0;
     string path = "fastq";
   
-    string gene1 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCTGGCGAGGTGACGCGAA";
+    /*string gene1 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCTGGCGAGGTGACGCGAA";
     string gene2 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCGGCGAGGTGACGCGAA";
-    int dist = findMinimumDistance(gene1, gene2, gene1.length(), gene2.length());
+    int dist = findMinimumDistance(gene1, gene2, gene1.length(), gene2.length());*/
 
     if (argc == 1) {
         readFileNames(&path);
@@ -53,9 +53,6 @@ int main(int argc, char *argv[])
             cout << consensus.at(i) << endl;
         }
     }
-
-    
-     
     return 0;
 }
 
@@ -76,7 +73,7 @@ int findMostCommonLength(vector<unsigned int> *allLengthsVector) {
     vector <unsigned int> lengthVector; //izvojene duljine lanaca 
 
     int maxRepetition = 0;
-    int lengthValueIndex;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
+    int lengthValueIndex=0;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
     int flag = 1;
 
     for (int i = 0; i < (*allLengthsVector).size();i++) {   //izdvoji duljine lanaca bez ponavljanja
@@ -152,7 +149,9 @@ vector<string> collectChains(string path, string fileName) {
             if (flag == true) {
                 unsigned int lineLength = line.length();
                 //allLengthsVector.push_back(line.length());
-                if (line.length() == lengthValue) {
+                //if (line.length() <= lengthValue + 1 || line.length()>=lengthValue - 1) {
+                if (line.length()== lengthValue) {
+
                     //cout << line << endl;
                     validChains.push_back(line);
                 }
@@ -276,28 +275,15 @@ int findMinimumDistance(string chain1, string chain2, int chain1Length, int chai
         }
     }
 
-    // Printing the final answer 
-    /*cout << "Minimum Penalty in aligning the genes = ";
-    cout << dp[chainLength][chainLength] << "\n";
-    cout << "The aligned genes are :\n";
-    for (i = id; i <= l; i++)
-    {
-        cout << (char)xans[i];
-    }
-    cout << "\n";
-    for (i = id; i <= l; i++)
-    {
-        cout << (char)yans[i];
-    }*/
 
-    int rezultat = dp[m][n];
+    int result = dp[m][n];
 
     for (int i = 0; i < (n+m+1); ++i)
         delete[] dp[i];
     delete[] dp;
     delete[] xans;
     delete[] yans;
-    return rezultat;
+    return result;
 }
 
 vector<string> k_means(const vector<string>& data,
@@ -337,12 +323,14 @@ vector<string> k_means(const vector<string>& data,
         //TU SPOA
         for (int i = 0; i < k; ++i) {
             auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1),
-                5, -4, -8, -6);
+                0, -4, -8, -6);
             auto graph = spoa::createGraph();
             for (const auto& it : clusterChainMap[i]) {
                 auto alignment = alignment_engine->align(it, graph);
                 graph->add_alignment(alignment, it);
             }
+
+            //GREŠKA SEGMENTATION FAULT (CORE DUMPED) KOD POZIVA SLJEDEĆE LINIJE:
             string consensus = graph->generate_consensus();
             means[i] = consensus;
         }
