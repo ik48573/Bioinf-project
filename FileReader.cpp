@@ -17,6 +17,7 @@ int findMostCommonLength(vector<unsigned int>* allLengthsVector);
 vector<string> collectChains(string path, string fileName);
 int findMinimumDistance(string chain1, string chain2, int chain1Length, int chain2Length);
 vector<string> k_means(const vector<string>& data, int k, int number_of_iterations);
+vector<string> merge_clusters(vector<string> first_cluster, vector<string> second_cluster);
 
 vector<string> fileNames;
 
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
         for (int i = 0; i < fileNames.size(); i++) {
             vector<string> chainsFromFile = collectChains(path, fileNames.at(i));
             cout << "Dohvaćeni lanci" << endl;
-            vector<string> consensus = k_means(chainsFromFile, 4, 10);
+            vector<string> consensus = k_means(chainsFromFile, 4, 1);
         }
     }
     else if (argc == 2) {
@@ -280,6 +281,7 @@ vector<string> k_means(const vector<string>& data,
     int number_of_iterations) {
 
     vector<vector<string>> clusterChainMap(k);
+    int clusterMergeThreshold = 15;
 
 
     // Pick centroids as random points from the dataset.
@@ -321,8 +323,51 @@ vector<string> k_means(const vector<string>& data,
                 means[i] = "";
             }
         }
-       
+    }
+
+    int best_distance = numeric_limits<int>::max();
+    int firstClosestChain = -1;
+    int secondClosestChain = -1;
+    for (int i = k-1; i >=0; --i) {
+        for (int j = 0; j < i; ++j) {
+            if (i != j) {
+                int distance = findMinimumDistance(means[i], means[j], means[i].length(), means[j].length());
+                if (distance < best_distance) {
+                    best_distance = distance;
+                    firstClosestChain = i;
+                    secondClosestChain = j;
+                }
+            }
+        }
+    }
+    if (best_distance < clusterMergeThreshold) {
+        means[firstClosestChain] = "";
+        clusterChainMap[secondClosestChain] = merge_clusters(clusterChainMap[firstClosestChain], clusterChainMap[secondClosestChain]);
+        clusterChainMap[firstClosestChain].clear();
+        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1), 0, -4, -8, -6);
+        auto graph = spoa::createGraph();
+        for (const auto& it : clusterChainMap[secondClosestChain]) {
+            auto alignment = alignment_engine->align(it, graph);
+            graph->add_alignment(alignment, it);
+        }
+        means[secondClosestChain] = graph->generate_consensus();
     }
 
     return means;
 }
+
+vector<string> merge_clusters(vector<string> first_cluster, vector<string> second_cluster) {
+    if (first_cluster.size() >= second_cluster.size()) {
+        for (int i = 0; i < second_cluster.size(); ++i) {
+            first_cluster.push_back(second_cluster[i]);
+        }
+        return first_cluster;
+    }
+    else
+    {
+        for (int i = 0; i < first_cluster.size(); ++i) {
+            second_cluster.push_back(first_cluster[i]);
+        }
+        return second_cluster;
+    }
+ }
