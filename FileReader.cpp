@@ -22,32 +22,21 @@ vector<string> fileNames;
 
 int main(int argc, char *argv[])
 {
-    //int lengthValue = 0;
     string path = "fastq";
   
-    /*string gene1 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCTGGCGAGGTGACGCGAA";
-    string gene2 = "GATCCTCTCTCTGCAGCACATTTCCTGCTGTATGCTAAGAGCGAGTGTCATTTCTCCAACGGGACGCAGCGGGTGGGGTTCCTGGACAGATACTTCTATAACGGAGAAGAGTTCGTGCGCTTCGACAGCGACTGGGGCGAGTACCGGGCGGTGACAGAGCTGGGGCGGCCGGTGGCCGAGTACCTGAACAGCCAGAAGGAGTACATGGAGCAGACGCGGGCCGAGGTGGACACGTACTGCAGACACAACTACGGCGGCGTTGAGAGTTTCACTGTGCAGCGGCGAGGTGACGCGAA";
-    int dist = findMinimumDistance(gene1, gene2, gene1.length(), gene2.length());*/
-
     if (argc == 1) {
         readFileNames(&path);
-        //lengthValue = findMostCommonLength(&allLengthsVector);
-    //readFile(&path, true, &lengthValue);
 
         for (int i = 0; i < fileNames.size(); i++) {
-            //cout << fileNames.at(i) << endl;
             vector<string> chainsFromFile = collectChains(path, fileNames.at(i));
             cout << "Dohvaćeni lanci" << endl;
-            vector<string> consensus = k_means(chainsFromFile, 4, 1);
+            vector<string> consensus = k_means(chainsFromFile, 4, 10);
         }
     }
     else if (argc == 2) {
         string fileName = argv[1];
         vector<string> chainsFromFile = collectChains(path, fileName);
 
-        for (int i = 0; i < chainsFromFile.size(); i++) {
-            //cout << chainsFromFile.at(i) << endl;
-        }
         vector<string> consensus = k_means(chainsFromFile, 4, 1);
         for (int i = 0; i < consensus.size(); i++) {
             cout << consensus.at(i) << endl;
@@ -149,7 +138,7 @@ vector<string> collectChains(string path, string fileName) {
             if (flag == true) {
                 unsigned int lineLength = line.length();
                 //allLengthsVector.push_back(line.length());
-                //if (line.length() <= lengthValue + 1 || line.length()>=lengthValue - 1) {
+                //if (line.length() <= lengthValue + 5|| line.length()>=lengthValue - 5) {
                 if (line.length()== lengthValue) {
 
                     //cout << line << endl;
@@ -290,7 +279,6 @@ vector<string> k_means(const vector<string>& data,
     int k,
     int number_of_iterations) {
 
-    //map<int, vector<string> > clusterChainMap;
     vector<vector<string>> clusterChainMap(k);
 
 
@@ -308,35 +296,32 @@ vector<string> k_means(const vector<string>& data,
             int best_distance = numeric_limits<int>::max();
             size_t best_cluster = 0;
             for (size_t cluster = 0; cluster < k; ++cluster) {
-                //const int distance =
-                    //distanceBetweenTwoSequences(data[chain], means[cluster]);
                 const int distance = findMinimumDistance(data[chain], means[cluster], data[chain].length(), means[cluster].length());
                 if (distance < best_distance) {
                     best_distance = distance;
                     best_cluster = cluster;
                 }
             }
-            //clusterChainMap[best_cluster].push_back(data[chain]);
             clusterChainMap.at(best_cluster).push_back(data[chain]);
 
         }
         //TU SPOA
         for (int i = 0; i < k; ++i) {
-            auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1),
-                0, -4, -8, -6);
+            auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1), 0, -4, -8, -6);
             auto graph = spoa::createGraph();
-            for (const auto& it : clusterChainMap[i]) {
-                auto alignment = alignment_engine->align(it, graph);
-                graph->add_alignment(alignment, it);
+            if (clusterChainMap[i].size() > 1) {
+                for (const auto& it : clusterChainMap[i]) {
+                    auto alignment = alignment_engine->align(it, graph);
+                    graph->add_alignment(alignment, it);
+                }
+                string consensus = graph->generate_consensus();
+                means[i] = consensus;
             }
-
-            //GREŠKA SEGMENTATION FAULT (CORE DUMPED) KOD POZIVA SLJEDEĆE LINIJE:
-            string consensus = graph->generate_consensus();
-            means[i] = consensus;
+            else {
+                means[i] = "";
+            }
         }
-        for (int i = 0; i < k; ++i) {
-            cout << clusterChainMap.at(i).size() << endl;
-        }
+       
     }
 
     return means;
