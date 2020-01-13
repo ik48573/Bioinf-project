@@ -5,8 +5,7 @@ Preduvjeti
 
 Nakon preuzimanja, kompajlira se kroz linux okruženje preko komandne linije naredbom:
   g++-9 FileReader.cpp -std=c++17 -Ispoa/include -Lbuild/lib/ -lspoa -o example
-        <ime cpp file-a>             <putanja do spoa library-a>  <izvršna datoteka>
-        
+      
 
 Pokretanje:
 
