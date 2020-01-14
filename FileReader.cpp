@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
         string fileName = argv[1];
         vector<string> chainsFromFile = collectChains(path, fileName);
 
-        vector<string> consensus = k_means(chainsFromFile, 4, 1);
+        vector<string> consensus = k_means(chainsFromFile, 4, 10);
         for (int i = 0; i < consensus.size(); i++) {
             cout << consensus.at(i) << endl;
         }
@@ -281,23 +281,32 @@ vector<string> k_means(const vector<string>& data,
     int number_of_iterations) {
 
     vector<vector<string>> clusterChainMap(k);
-    int clusterMergeThreshold = 15;
+    int clusterMergeThreshold = 1;
 
 
     // Pick centroids as random points from the dataset.
     vector<string> means;
+    vector<string> checkMeans;
+
     for (int i = 0; i < k; ++i) {
         clusterChainMap.at(i).push_back("");
         means.push_back(data[rand() % data.size()]);
+        checkMeans.push_back("");
     }
+
+
 
     vector<size_t> assignments(data.size());
     for (size_t iteration = 0; iteration < number_of_iterations; ++iteration) {
+
         // Find assignments.
         for (size_t chain = 0; chain < data.size(); ++chain) {
             int best_distance = numeric_limits<int>::max();
             size_t best_cluster = 0;
             for (size_t cluster = 0; cluster < k; ++cluster) {
+                if (iteration > 0) {
+                    checkMeans[cluster] = means[cluster];
+                }
                 const int distance = findMinimumDistance(data[chain], means[cluster], data[chain].length(), means[cluster].length());
                 if (distance < best_distance) {
                     best_distance = distance;
@@ -319,11 +328,27 @@ vector<string> k_means(const vector<string>& data,
                 string consensus = graph->generate_consensus();
                 means[i] = consensus;
             }
-            else {
+            /*else {
                 means[i] = "";
+            }*/
+        }
+
+        int flag = 0;
+        if (checkMeans.size() > 0) {
+            cout << "check last session" << endl;
+            for (int i = 0; i < means.size(); i++) {
+                if (checkMeans[i] == means[i]) {
+                    flag++;
+                }
+            }
+            if (flag == means.size()) {
+                cout << "Dosli smo do stacionarnog stanja" << endl;
+                break;
             }
         }
     }
+
+    
 
     int best_distance = numeric_limits<int>::max();
     int firstClosestChain = -1;
