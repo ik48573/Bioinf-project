@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
             if (consensus.at(i) != "") {
                 fileSave << ">Varijanta gena: " << (i + 1) << endl;
                 fileSave << consensus.at(i) << endl;
+                cout << consensus.at(i) << endl;
             }
-            cout << consensus.at(i) << endl;
         }
         fileSave.close();
     }
