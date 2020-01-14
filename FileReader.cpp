@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include "include/spoa/spoa.hpp"
+
 using namespace std;
 namespace fs = filesystem;
 
@@ -31,7 +32,6 @@ int main(int argc, char *argv[])
 
         for (int i = 0; i < fileNames.size(); i++) {
             vector<string> chainsFromFile = collectChains(path, fileNames.at(i));
-            cout << "Dohvaćeni lanci" << endl;
             vector<string> consensus = k_means(chainsFromFile, 4, 1);
         }
     }
@@ -40,14 +40,13 @@ int main(int argc, char *argv[])
         vector<string> chainsFromFile = collectChains(path, fileName);
         vector<string> consensus;
         if (fileName.rfind("J", 0) == 0) {
-            consensus = k_means(chainsFromFile, 4, 1);
+            consensus = k_means(chainsFromFile, 4, 100);
         }
         else if (fileName.rfind("L", 0) == 0) {
-            //POZIV ZA JELENE, PROMIJENI BROJ KLASTERA
-            consensus = k_means(chainsFromFile, 6, 1);
+            consensus = k_means(chainsFromFile, 6, 100);
         }
         else {
-            cout << "Učitajte datoteku s genima jelena ili divokoza!" << endl;
+            cout << "Please put valid file name!" << endl;
         }
         string pathSave = "fasta/";
         string newFileName = fileName.substr(0, fileName.size() - 6); //remove .fastq
@@ -108,7 +107,8 @@ int findMostCommonLength(vector<unsigned int> *allLengthsVector) {
             lengthVector.push_back((*allLengthsVector).at(i));
         }
     }
-    cout << "Ukupno ima: " <<lengthVector.size() <<" razlicitih duljina lanaca"<< endl;
+
+    //cout << "Ukupno ima: " <<lengthVector.size() <<" razlicitih duljina lanaca"<< endl;
 
     //prebroji koliko ponavljanja ima za svaku duljinu
     for (int i = 0; i < lengthVector.size();i++) {      
@@ -118,7 +118,6 @@ int findMostCommonLength(vector<unsigned int> *allLengthsVector) {
             lengthValueIndex = lengthVector.at(i);
         }
     }
-    cout << "Najveci broj pojavljivanja je za: " << lengthValueIndex << endl;
     return lengthValueIndex;
 }
 
@@ -153,8 +152,7 @@ vector<string> collectChains(string path, string fileName) {
         cout << allLengthsVector.size() << endl;
     }
 
-    int lengthValue = findMostCommonLength(&allLengthsVector);
-    cout << "Duljina je: " << lengthValue << endl;
+    int lengthValue = findMostCommonLength(&allLengthsVector); //najčešća duljina prisutna u datoteci
 
     ifstream fileOpen2(fullPath);
     if (!fileOpen2.is_open()) {
@@ -162,7 +160,6 @@ vector<string> collectChains(string path, string fileName) {
     }
     else
     {
-        cout << "Reading: " << fullPath << endl;
         string line;
         bool flag = false;
         while (fileOpen2.good())
@@ -170,11 +167,7 @@ vector<string> collectChains(string path, string fileName) {
             getline(fileOpen2, line);
             if (flag == true) {
                 unsigned int lineLength = line.length();
-                //allLengthsVector.push_back(line.length());
-                //if (line.length() <= lengthValue + 5|| line.length()>=lengthValue - 5) {
                 if (line.length()== lengthValue) {
-
-                    //cout << line << endl;
                     validChains.push_back(line);
                 }
                 flag = false;
@@ -207,8 +200,7 @@ int findMinimumDistance(string chain1, string chain2, int chain1Length, int chai
             dp[i][j] = 0;
         }
     }
-    //cout << "kraj";
-    // intialising the table 
+
     for (i = 0; i <= (n + m); i++)
     {
         dp[i][0] = i * gapPenalty;
@@ -272,11 +264,13 @@ int findMinimumDistance(string chain1, string chain2, int chain1Length, int chai
             j--;
         }
     }
+
     while (xpos > 0)
     {
         if (i > 0) xans[xpos--] = (int)chain1[--i];
         else xans[xpos--] = (int)'_';
     }
+
     while (ypos > 0)
     {
         if (j > 0) yans[ypos--] = (int)chain2[--j];
@@ -315,7 +309,6 @@ vector<string> k_means(const vector<string>& data,
     vector<vector<string>> clusterChainMap(k);
     int clusterMergeThreshold = 1000;
 
-
     // Pick centroids as random points from the dataset.
     vector<string> means;
     vector<string> checkMeans;
@@ -325,8 +318,6 @@ vector<string> k_means(const vector<string>& data,
         means.push_back(data[rand() % data.size()]);
         checkMeans.push_back("");
     }
-
-
 
     vector<size_t> assignments(data.size());
     for (size_t iteration = 0; iteration < number_of_iterations; ++iteration) {
@@ -348,7 +339,7 @@ vector<string> k_means(const vector<string>& data,
             clusterChainMap.at(best_cluster).push_back(data[chain]);
 
         }
-        //TU SPOA
+ 
         for (int i = 0; i < k; ++i) {
             auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1), 0, -4, -8, -6);
             auto graph = spoa::createGraph();
@@ -360,30 +351,28 @@ vector<string> k_means(const vector<string>& data,
                 string consensus = graph->generate_consensus();
                 means[i] = consensus;
             }
-            /*else {
-                means[i] = "";
-            }*/
         }
 
         int flag = 0;
         if (checkMeans.size() > 0) {
-            cout << "check last session" << endl;
+            cout << "Check last session." << endl;
             for (int i = 0; i < means.size(); i++) {
                 if (checkMeans[i] == means[i]) {
                     flag++;
                 }
             }
             if (flag == means.size()) {
-                cout << "Dosli smo do stacionarnog stanja" << endl;
+                cout << "Found stationary state." << endl;
                 break;
             }
         }
     }
-
+    cout << "Merging threshold: " << clusterMergeThreshold << "." << endl;
     while (1) {
         int a;
         int b;
         int flag = 0;
+
         for (int i = k - 1; i >= 0; --i) {
             for (int j = 0; j < i; ++j) {
                 a = i;
@@ -392,7 +381,7 @@ vector<string> k_means(const vector<string>& data,
                     int distance = findMinimumDistance(means[i], means[j], means[i].length(), means[j].length());
                     if (distance < clusterMergeThreshold) {
                         flag = 1;
-                        cout << "Spajam klaster " << i << " i " << j << endl;
+                        cout << "Merging clusters " << i << " and " << j << "because distance between them is: " << distance << endl;
                         means[i] = "";
                         clusterChainMap[j] = merge_clusters(clusterChainMap[i], clusterChainMap[j]);
                         clusterChainMap[i].clear();
@@ -411,7 +400,6 @@ vector<string> k_means(const vector<string>& data,
         if (a == 0 && b == k - 2) {
             break;
         }
-        cout << "Trenutni a: " << a << " Trenutni b:" << b << endl;
         if (clusterChainMap.size() == 1) {
             break;
         }
@@ -419,19 +407,6 @@ vector<string> k_means(const vector<string>& data,
             break;
         }
     }
-    /*if (best_distance < clusterMergeThreshold) {
-        means[firstClosestChain] = "";
-        clusterChainMap[secondClosestChain] = merge_clusters(clusterChainMap[firstClosestChain], clusterChainMap[secondClosestChain]);
-        clusterChainMap[firstClosestChain].clear();
-        auto alignment_engine = spoa::createAlignmentEngine(static_cast<spoa::AlignmentType>(1), 0, -4, -8, -6);
-        auto graph = spoa::createGraph();
-        for (const auto& it : clusterChainMap[secondClosestChain]) {
-            auto alignment = alignment_engine->align(it, graph);
-            graph->add_alignment(alignment, it);
-        }
-        means[secondClosestChain] = graph->generate_consensus();
-    }*/
-
     return means;
 }
 
