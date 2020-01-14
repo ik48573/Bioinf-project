@@ -286,7 +286,7 @@ vector<string> k_means(const vector<string>& data,
         }
 
         int flag = 0;
-        if (checkMeans.size() > 0) {
+        if (iteration != 0) {
             cout << "Check last session." << endl;
             for (int i = 0; i < means.size(); i++) {
                 if (checkMeans[i] == means[i]) {
@@ -303,8 +303,10 @@ vector<string> k_means(const vector<string>& data,
     while (1) {
         int a = -1;
         int b = -1;
+        int flag = -1;
 
         for (int i = k - 1; i > 0; --i) {
+            flag = 1;
             for (int j = 0; j < i; ++j) {
                 a = i;
                 b = j;
@@ -322,15 +324,19 @@ vector<string> k_means(const vector<string>& data,
                             graph->add_alignment(alignment, it);
                         }
                         means[j] = graph->generate_consensus();
+                        flag = 0;
                         break;
                     }
                 }
+            }
+            if (flag == 0) {
+                break;
             }
         }
         if (a == 1 && b == 0) {
             break;
         }
-        if (clusterChainMap.size() == 1 || clusterChainMap.size() == k) {
+        if (clusterChainMap.size() == 1 || flag == 1) {
             break;
         }
     }
