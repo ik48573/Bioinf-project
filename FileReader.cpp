@@ -37,8 +37,18 @@ int main(int argc, char *argv[])
     else if (argc == 2) {
         string fileName = argv[1];
         vector<string> chainsFromFile = collectChains(path, fileName);
+        vector<string> consensus;
+        if (fileName.rfind("J", 0) == 0) {
+            consensus = k_means(chainsFromFile, 4, 10);
+        }
+        else if (fileName.rfind("L", 0) == 0) {
+            //POZIV ZA JELENE, PROMIJENI BROJ KLASTERA
+            consensus = k_means(chainsFromFile, 4, 10);
+        }
+        else {
+            cout << "Učitajte datoteku s genima jelena ili divokoza!" << endl;
+        }
 
-        vector<string> consensus = k_means(chainsFromFile, 4, 10);
         for (int i = 0; i < consensus.size(); i++) {
             cout << consensus.at(i) << endl;
         }
