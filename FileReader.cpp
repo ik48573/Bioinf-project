@@ -24,6 +24,9 @@ vector<string> fileNames;
 
 int main(int argc, char *argv[])
 {
+    int deer_k = 4;
+    int chamois_k = 6;
+    int number_of_iterations = 5;
     string path = "fastq";
     fs::create_directory("fasta");
 
@@ -32,7 +35,7 @@ int main(int argc, char *argv[])
 
         for (int i = 0; i < fileNames.size(); i++) {
             vector<string> chainsFromFile = collectChains(path, fileNames.at(i));
-            vector<string> consensus = k_means(chainsFromFile, 4, 1);
+            vector<string> consensus = k_means(chainsFromFile, deer_k, number_of_iterations);
         }
     }
     else if (argc == 2) {
@@ -40,10 +43,10 @@ int main(int argc, char *argv[])
         vector<string> chainsFromFile = collectChains(path, fileName);
         vector<string> consensus;
         if (fileName.rfind("J", 0) == 0) {
-            consensus = k_means(chainsFromFile, 4, 100);
+            consensus = k_means(chainsFromFile, deer_k, number_of_iterations);
         }
         else if (fileName.rfind("L", 0) == 0) {
-            consensus = k_means(chainsFromFile, 6, 100);
+            consensus = k_means(chainsFromFile, chamois_k, number_of_iterations);
         }
         else {
             cout << "Please put valid file name!" << endl;
@@ -94,8 +97,8 @@ int findMostCommonLength(vector<unsigned int> *allLengthsVector) {
     vector <unsigned int> lengthVector; //izvojene duljine lanaca 
 
     int maxRepetition = 0;
-    int lengthValueIndex=0;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
-    int flag = 1;
+    int lengthValueIndex = 0;   //na kojem mjestu unutar lengthVector-a se nalazi duljina s najvise ponavljanja 
+    int flag;
 
     for (int i = 0; i < (*allLengthsVector).size();i++) {   //izdvoji duljine lanaca bez ponavljanja
         flag = 1;
@@ -184,12 +187,12 @@ int findMinimumDistance(string chain1, string chain2, int chain1Length, int chai
     int misMatchPenalty = 7;
     int gapPenalty = 8;
 
-    int i, j; // intialising variables  
+    int i, j; // Intialising variables.  
 
     const int n = chain1Length;
     const int m = chain2Length;
 
-    // table for storing optimal substructure answers 
+    // Table for storing optimal substructure answers. 
     int** dp = new int* [n+m+1];
     for (int i = 0; i < (n+m+1); ++i)
         dp[i] = new int[n+m+1];
@@ -206,7 +209,7 @@ int findMinimumDistance(string chain1, string chain2, int chain1Length, int chai
         dp[0][i] = i * gapPenalty;
     }
 
-    // calcuting the minimum penalty 
+    // Calcuting the minimum penalty. 
     for (i = 1; i <= n; i++)
     {
         for (j = 1; j <= m; j++)
@@ -249,14 +252,13 @@ vector<string> k_means(const vector<string>& data,
         checkMeans.push_back("");
     }
 
-    vector<size_t> assignments(data.size());
-    for (size_t iteration = 0; iteration < number_of_iterations; ++iteration) {
+    for (int iteration = 0; iteration < number_of_iterations; ++iteration) {
 
         // Find assignments.
-        for (size_t chain = 0; chain < data.size(); ++chain) {
+        for (int chain = 0; chain < data.size(); ++chain) {
             int best_distance = numeric_limits<int>::max();
-            size_t best_cluster = 0;
-            for (size_t cluster = 0; cluster < k; ++cluster) {
+            int best_cluster = 0;
+            for (int cluster = 0; cluster < k; ++cluster) {
                 if (iteration > 0) {
                     checkMeans[cluster] = means[cluster];
                 }
@@ -299,18 +301,16 @@ vector<string> k_means(const vector<string>& data,
     }
     cout << "Merging threshold: " << clusterMergeThreshold << "." << endl;
     while (1) {
-        int a;
-        int b;
-        int flag = 0;
+        int a = -1;
+        int b = -1;
 
-        for (int i = k - 1; i >= 0; --i) {
+        for (int i = k - 1; i > 0; --i) {
             for (int j = 0; j < i; ++j) {
                 a = i;
                 b = j;
-                if (i != j && means[i] != "" && means[j] != "") {
+                if (means[i] != "" && means[j] != "") {
                     int distance = findMinimumDistance(means[i], means[j], means[i].length(), means[j].length());
                     if (distance < clusterMergeThreshold) {
-                        flag = 1;
                         cout << "Merging clusters " << i << " and " << j << " because distance between them is: " << distance << endl;
                         means[i] = "";
                         clusterChainMap[j] = merge_clusters(clusterChainMap[i], clusterChainMap[j]);
@@ -327,13 +327,10 @@ vector<string> k_means(const vector<string>& data,
                 }
             }
         }
-        if (a == 0 && b == k - 2) {
+        if (a == 1 && b == 0) {
             break;
         }
-        if (clusterChainMap.size() == 1) {
-            break;
-        }
-        if (flag == 0) {
+        if (clusterChainMap.size() == 1 || clusterChainMap.size() == k) {
             break;
         }
     }
