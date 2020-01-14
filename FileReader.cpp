@@ -149,7 +149,6 @@ vector<string> collectChains(string path, string fileName) {
             }
         }
         fileOpen.close();
-        cout << allLengthsVector.size() << endl;
     }
 
     int lengthValue = findMostCommonLength(&allLengthsVector); //najčešća duljina prisutna u datoteci
@@ -225,80 +224,11 @@ int findMinimumDistance(string chain1, string chain2, int chain1Length, int chai
         }
     }
 
-    // Reconstructing the solution 
-    int l = n+m; // maximum possible length 
-
-    i = n; j = m;
-
-    int xpos = l;
-    int ypos = l;
-
-    // Final answers for the respective strings 
-    int* yans = new int[l + 1];
-    int* xans = new int[l + 1];
-
-    while (!(i == 0 || j == 0))
-    {
-        if (chain1[i - 1] == chain2[j - 1])
-        {
-            xans[xpos--] = (int)chain1[i - 1];
-            yans[ypos--] = (int)chain2[j - 1];
-            i--; j--;
-        }
-        else if (dp[i - 1][j - 1] + misMatchPenalty == dp[i][j])
-        {
-            xans[xpos--] = (int)chain1[i - 1];
-            yans[ypos--] = (int)chain2[j - 1];
-            i--; j--;
-        }
-        else if (dp[i - 1][j] + gapPenalty == dp[i][j])
-        {
-            xans[xpos--] = (int)chain1[i - 1];
-            yans[ypos--] = (int)'_';
-            i--;
-        }
-        else if (dp[i][j - 1] + gapPenalty == dp[i][j])
-        {
-            xans[xpos--] = (int)'_';
-            yans[ypos--] = (int)chain2[j - 1];
-            j--;
-        }
-    }
-
-    while (xpos > 0)
-    {
-        if (i > 0) xans[xpos--] = (int)chain1[--i];
-        else xans[xpos--] = (int)'_';
-    }
-
-    while (ypos > 0)
-    {
-        if (j > 0) yans[ypos--] = (int)chain2[--j];
-        else yans[ypos--] = (int)'_';
-    }
-
-    // Since we have assumed the answer to be n+m long, 
-    // we need to remove the extra gaps in the starting 
-    // id represents the index from which the arrays 
-    // xans, yans are useful 
-    int id = 1;
-    for (i = l; i >= 1; i--)
-    {
-        if ((char)yans[i] == '_' && (char)xans[i] == '_')
-        {
-            id = i + 1;
-            break;
-        }
-    }
-
-
-    int result = dp[m][n];
+    int result = dp[n][m];
 
     for (int i = 0; i < (n+m+1); ++i)
         delete[] dp[i];
     delete[] dp;
-    delete[] xans;
-    delete[] yans;
     return result;
 }
 
@@ -307,7 +237,7 @@ vector<string> k_means(const vector<string>& data,
     int number_of_iterations) {
 
     vector<vector<string>> clusterChainMap(k);
-    int clusterMergeThreshold = 1000;
+    int clusterMergeThreshold = 20;
 
     // Pick centroids as random points from the dataset.
     vector<string> means;
@@ -381,7 +311,7 @@ vector<string> k_means(const vector<string>& data,
                     int distance = findMinimumDistance(means[i], means[j], means[i].length(), means[j].length());
                     if (distance < clusterMergeThreshold) {
                         flag = 1;
-                        cout << "Merging clusters " << i << " and " << j << "because distance between them is: " << distance << endl;
+                        cout << "Merging clusters " << i << " and " << j << " because distance between them is: " << distance << endl;
                         means[i] = "";
                         clusterChainMap[j] = merge_clusters(clusterChainMap[i], clusterChainMap[j]);
                         clusterChainMap[i].clear();
