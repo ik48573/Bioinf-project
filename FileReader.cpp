@@ -24,7 +24,8 @@ vector<string> fileNames;
 int main(int argc, char *argv[])
 {
     string path = "fastq";
-  
+    fs::create_directory("fasta");
+
     if (argc == 1) {
         readFileNames(&path);
 
@@ -48,10 +49,31 @@ int main(int argc, char *argv[])
         else {
             cout << "Učitajte datoteku s genima jelena ili divokoza!" << endl;
         }
+        string pathSave = "fasta/";
+        string newFileName = fileName.substr(0, fileName.size() - 6); //remove .fastq
+        
+        string newFile;
+        time_t t = time(0);   // get time now
+        struct tm* now = localtime(&t);
 
+        char buffer[80];
+        strftime(buffer, 80, "%d%m%Y_%H%M%S", now);
+        newFile.append(pathSave);
+        newFile.append(newFileName);
+        newFile.append("_");
+        newFile.append(buffer);
+        newFile.append(".fasta");
+        cout << newFile << endl;
+        ofstream fileSave;
+        fileSave.open(newFile);
         for (int i = 0; i < consensus.size(); i++) {
+            if (consensus.at(i) != "") {
+                fileSave << ">Varijanta gena: " << (i + 1) << endl;
+                fileSave << consensus.at(i) << endl;
+            }
             cout << consensus.at(i) << endl;
         }
+        fileSave.close();
     }
     return 0;
 }
