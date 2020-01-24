@@ -240,7 +240,7 @@ vector<string> k_means(const vector<string>& data,
     int number_of_iterations) {
 
     vector<vector<string>> cluster_chain_map(k);
-    int cluster_merge_threshold = 20;
+    int cluster_merge_threshold = 6;
 
     // Pick centroids as random points from the dataset.
     vector<string> means;
