@@ -4,6 +4,7 @@ Upute za instalaciju i korištenje
 
 Preduvjeti
   - gcc 9
+  - g++ 9
 	
 Prije pokretanja, potrebno je u direktorij u kojem se nalazi FindConsensus.cpp datoteka dodati direktorij „fastq“ u kojem će se nalaziti datoteke fastq formata koje program obrađuje.
 
